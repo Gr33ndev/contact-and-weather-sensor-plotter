@@ -147,7 +147,9 @@ def filter_data_by_time(df, start_date, end_date):
     return df[(df["Date"] >= start_date) & (df["Date"] <= end_date)]
 
 
-def plot_multiple_data(files, selected_measurements, start_date, end_date):
+def plot_multiple_data(files, selected_measurements, start_date, end_date, show_stats):
+    all_stats = []
+
     fig, ax1 = plt.subplots(figsize=(12, 5))
     ax2 = ax1.twinx()
 
@@ -163,6 +165,12 @@ def plot_multiple_data(files, selected_measurements, start_date, end_date):
             else:
                 ax1.plot(df["Date"], df[measurement], label=f"{name} - {measurement}", linewidth=2, color="purple")
 
+        if "Contact" in file.name and show_stats:
+            stats = calculate_statistics(df, start_date, end_date, name)
+            all_stats.append(stats)
+            st.write(f"### Statistics for {name}")
+            st.write(stats)
+
     ax1.set_xlabel("Date/Time")
     ax1.set_ylabel("Netatmo Values")
     ax2.set_ylabel("Contact Sensor State (0/1)")
@@ -173,6 +181,12 @@ def plot_multiple_data(files, selected_measurements, start_date, end_date):
     plt.title("Combined Sensor Data")
     plt.grid(True, linestyle="--", alpha=0.6)
     st.pyplot(fig)
+
+    if len(all_stats) > 1:
+        overall_stats = pd.DataFrame(all_stats).drop(
+            columns=["Accessory Name", "From", "To", "Number of Days"]).mean().to_dict()
+        st.write("### Overall Statistics (Mean Over All Uploaded Files)")
+        st.write(overall_stats)
 
 
 def main():
@@ -194,7 +208,8 @@ def main():
     combined_plot = True
     if not netatmo_and_eve:
         combined_plot = st.checkbox("Show all files in one plot", value=True)
-        show_stats = st.checkbox("Show Statistics", value=True)
+
+    show_stats = st.checkbox("Show Statistics", value=True)
 
     now = datetime.now()
     if time_filter == "Last Week":
@@ -230,7 +245,7 @@ def main():
                 selected_measurements.append((file, measurement))
 
         if uploaded_files:
-            plot_multiple_data(uploaded_files, selected_measurements, start_date, end_date)
+            plot_multiple_data(uploaded_files, selected_measurements, start_date, end_date, show_stats)
     else:
         if uploaded_files:
             if len(uploaded_files) > 6:
