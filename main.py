@@ -178,7 +178,7 @@ def plot_multiple_data(files, selected_measurements, start_date, end_date):
 def main():
     st.title("State and Sensor Data Plotter")
 
-    uploaded_files = st.file_uploader("Upload Excel files", type=["xlsx", "csv"], accept_multiple_files=True)
+    uploaded_files = st.file_uploader("Upload Excel files", type=["xlsx"], accept_multiple_files=True)
     time_filter = st.selectbox("Select Time Filter", ["All", "Today", "Last Week", "Last Month", "Last Year", "Custom"])
 
     custom_start, custom_end = None, None
